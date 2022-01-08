@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LANService</title>
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="./js/lib/element.css">
+  <link rel="stylesheet" href="./js/lib/element-t.css">
+  <link rel="stylesheet" href="./css/font-awesome.css">
+  <link rel="stylesheet" href="./css/index.css">
+  <!-- import Vue before Element -->
+  <script src="./js/lib/vue.js"></script>
+  <!-- 引入组件库 -->
+  <script src="./js/lib/element.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    
+    <!-- 模块：系统控制 -->
+    <div class="modules">
+      <div class="row">
+        <button class="action" @click="call('system/lock')">
+          <i class="fa fa-lock"></i>
+        </button>
+        <button class="action" @click="dangerCall('system/poweroff')">
+          <i class="fa fa-power-off"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 模块：媒体控制 -->
+    <div class="modules">
+      <div class="row">
+        <button class="action" @click="call('media/stop')">
+          <i class="fa fa-stop"></i>
+        </button>
+        <button class="action" @click="call('media/prev')">
+          <i class="fa fa-fast-backward"></i>
+        </button>
+        <button class="action" @click="call('media/pause')">
+          <i class="fa fa-step-forward"></i>
+        </button>
+        <button class="action" @click="call('media/next')">
+          <i class="fa fa-fast-forward"></i>
+        </button>
+      </div>
+      <div class="row">
+        <button class="action" @click="call('media/notMute')" v-if="systemVolumn.mute">
+          <i class="fa fa-volume-off"></i>
+        </button>
+        <button class="action" @click="call('media/mute')" v-else>
+          <i class="fa fa-volume-up"></i>
+        </button>
+        <button class="action" @click="call('media/volumeDown')"
+          :disabled="systemVolumn.mute"
+        >
+          <i class="fa fa-volume-down"></i>-
+        </button>
+        <button class="action"
+          :disabled="systemVolumn.mute"
+        >
+          {{systemVolumn.volume}}
+        </button>
+        <button class="action" @click="call('media/volumeUp')"
+          :disabled="systemVolumn.mute"
+        >
+          <i class="fa fa-volume-up"></i>+
+        </button>
+        
+      </div>
+    </div>
+    
+  </div>
+
+  <script src="./js/index.js"></script>
+</body>
+</html>

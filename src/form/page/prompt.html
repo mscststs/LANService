@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <style>
+            #form{
+                width:100%;
+                padding:10px;
+                box-sizing: border-box;
+                display:flex;
+                flex-direction: column;
+            }
+            #buttons{
+                margin-top:20px;
+                display:flex;
+                justify-content:center;
+            }
+            #cancel{
+                border-style: none;
+                font-size: 16px;
+                padding:6px 12px;
+                margin-right: 18px;
+            }
+            #ok{
+
+                border-style: none;
+                font-size: 16px;
+                padding:6px 12px;
+                background-color: navy;
+                color:white;
+            }
+            .form-item{
+                display:flex;
+                flex-direction: row;
+                height: 30px;
+                font-size:18px;
+                padding:5px;
+                align-items: center;
+            }
+            .form-item .label{
+                display:flex;
+                flex:none;
+                width:120px;
+            }
+            .form-item .content{
+                display:flex;
+                flex:auto;
+                justify-content:flex-start;
+                flex-direction: row;
+            }
+            .content .input{
+                height:30px;
+                font-size:16px;
+                outline: none;
+                flex:auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <form id="form">
+                <h3>服务端配置</h3>
+                <div class="form-item">
+                    <div class="label">本机IP</div>
+                    <div class="content">
+                        <input name="ip" class="input"
+                        placeholder="例如: 192.168.3.1">
+                    </div>
+                </div>
+                
+                <div class="form-item">
+                    <div class="label">端口</div>
+                    <div class="content">
+                        <input type="number" name="port" class="input"
+                        placeholder="例如: 3000">
+                    </div>
+                </div>
+            </form>
+            
+            <div id="buttons">
+                <button id="cancel" >取消</button>
+                <button id="ok" >确认</button>
+            </div>
+        </div>
+    </body>
+    <script src="prompt.js"></script>
+</html>

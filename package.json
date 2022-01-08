@@ -1,0 +1,55 @@
+{
+  "name": "lan-service",
+  "version": "1.0.3",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac"
+  },
+  "build": {
+    "asar": false,
+    "appId": "com.mscststs.lanservice",
+    "productName": "LANService",
+    "extraResources": [
+      {
+        "from": "assets/",
+        "to": "assets/"
+      }
+    ],
+    "mac": {
+      "icon": "assets/service.png"
+    },
+    "win": {
+      "icon": "assets/service.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": true
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "electron": "^13.1.7",
+    "electron-builder": "^22.11.7"
+  },
+  "dependencies": {
+    "crypto-js": "^4.1.1",
+    "electron-store": "^8.0.0",
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^10.1.1",
+    "koa-static": "^5.0.0",
+    "loudness": "^0.4.1",
+    "require-directory": "^2.1.1",
+    "robotjs": "^0.6.0",
+    "uuid": "^8.3.2"
+  }
+}
