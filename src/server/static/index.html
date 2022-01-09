@@ -3,14 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
   <title>LANService</title>
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="img/service-icon-apple.png">
+  <meta name="application-name" content="LANService" />
+  <meta name="apple-mobile-web-app-title" content="LANService">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <!-- 引入样式 -->
   <link rel="stylesheet" href="./js/lib/element.css">
   <link rel="stylesheet" href="./js/lib/element-t.css">
   <link rel="stylesheet" href="./css/font-awesome.css">
   <link rel="stylesheet" href="./css/index.css">
+  <script>
+    if (navigator.serviceWorker != null) {
+      navigator.serviceWorker.register('sw.js')
+      .then(function(registration) {
+        console.log('Registered events at scope: ', registration.scope);
+      });
+    }
+  </script>
   <!-- import Vue before Element -->
   <script src="./js/lib/vue.js"></script>
   <!-- 引入组件库 -->
