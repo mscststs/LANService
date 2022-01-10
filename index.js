@@ -16,7 +16,6 @@ const ip = store.get("ip");
 const port = store.get("port");
 
 
-
 let tray = null;
 let httpServer = null;
 

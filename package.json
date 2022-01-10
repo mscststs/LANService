@@ -6,7 +6,8 @@
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac"
+    "build:mac": "electron-builder --mac",
+    "postinstall": "npx electron-rebuild"
   },
   "build": {
     "asar": false,
@@ -19,7 +20,7 @@
       }
     ],
     "mac": {
-      "icon": "assets/service.png"
+      "icon": "assets/service-app.png"
     },
     "win": {
       "icon": "assets/service.ico",
