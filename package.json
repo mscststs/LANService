@@ -1,6 +1,6 @@
 {
   "name": "lan-service",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "index.js",
   "scripts": {
     "start": "electron .",
@@ -41,6 +41,7 @@
     "electron-builder": "^22.11.7"
   },
   "dependencies": {
+    "@jitsi/robotjs": "^0.6.9",
     "crypto-js": "^4.1.1",
     "electron-store": "^8.0.0",
     "koa": "^2.13.4",
@@ -49,7 +50,6 @@
     "koa-static": "^5.0.0",
     "loudness": "^0.4.1",
     "require-directory": "^2.1.1",
-    "robotjs": "^0.6.0",
     "uuid": "^8.3.2"
   }
 }

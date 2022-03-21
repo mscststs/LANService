@@ -1,5 +1,5 @@
 const Controller = require('../../template/controller');
-const robot = require("robotjs");
+const robot = require("@jitsi/robotjs");
 const loudness = require('loudness')
 
 module.exports = class extends Controller {
