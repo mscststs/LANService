@@ -4,9 +4,8 @@ const store = new Store();
 const path = require("path");
 const setting = require("./form/index");
 
-
-const errorIcon = 'assets/service-error.png';
-const connectIcon = 'assets/service.png';
+const errorIcon = process.platform == "darwin" ? 'assets/service-errorTemplate@4x.png': 'assets/service-error.png';
+const connectIcon = process.platform == "darwin" ? 'assets/serviceTemplate@4x.png' :'assets/service.png';
 
 class PathUtils {
   // 将startPath作为标准路径，静态资源的路径和项目中使用到的路径全部由startPath起始

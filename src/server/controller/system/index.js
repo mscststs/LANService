@@ -9,10 +9,20 @@ robot.setMouseDelay(0);
 
 module.exports = class extends Controller {
   async lock(){
-    exec('rundll32.exe user32.dll LockWorkStation');
+    if(process.platform == "darwin"){
+      // MACOS
+      exec("pmset displaysleepnow")
+    }else{
+      exec('rundll32.exe user32.dll LockWorkStation');
+    }
   }
   async poweroff(){
-    exec('shutdown /p');
+    if(process.platform == "darwin"){
+      // MACOS
+      exec("shutdown -h now")
+    }else{
+      exec('shutdown /p');
+    }
   }
   async pointerMove({dx = 0, dy = 0} = {}){
     const mouse = robot.getMousePos();
