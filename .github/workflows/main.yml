@@ -43,3 +43,32 @@ jobs:
         with:
           name: LANService-macos
           path: dist/*.dmg   
+
+  # This workflow contains a single job called "build"
+  windows-release:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2-beta
+
+      # Runs a set of commands using the runners shell
+      - name: Npm install
+        run: npm install
+        
+        
+      - name: Build Dist
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Upload Artifact[osx]
+        uses: actions/upload-artifact@v3.0.0
+        with:
+          name: LANService-win
+          path: dist/*.exe   
