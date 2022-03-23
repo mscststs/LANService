@@ -40,4 +40,6 @@ jobs:
         uses: actions/upload-artifact@v1.0.0
         with:
           name: LANService-macos
-          path: dist/*.dmg
+          path: dist/*.dmg   
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
