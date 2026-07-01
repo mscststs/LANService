@@ -1,14 +1,14 @@
 /**
  * Controller ，所有控制器的基类
  */
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 class Controller {
   constructor(ctx) {
     this.ctx = ctx;
     this.ctx.env = 'prd';
     // 初始化 requestId
-    this.ctx.uuid = this.ctx.uuid || this.ctx.headers.RequestId || uuidv4();
+    this.ctx.uuid = this.ctx.uuid || this.ctx.headers.RequestId || crypto.randomUUID();
     this.ctx.set({
       RequestId: this.ctx.uuid
     });

@@ -1,7 +1,4 @@
-const electron = require('electron');
-
-const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow;
-const ipcMain = electron.ipcMain || electron.remote.ipcMain;
+const { BrowserWindow, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
 
@@ -46,7 +43,9 @@ function electronPrompt(options, parentWindow) {
 			icon: options_.icon || undefined,
 			webPreferences: {
 				nodeIntegration: true,
-				contextIsolation: false
+				contextIsolation: false,
+				sandbox: false,
+				webSecurity: false
 			}
 		});
 
