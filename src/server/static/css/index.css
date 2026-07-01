@@ -1,55 +1,407 @@
-html,body{
-  width:100%;
-  height:100%;
+/* ============================
+   LANService v2 — 暗色主题
+   ============================ */
+
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-card: rgba(22, 22, 40, 0.85);
+  --text-primary: #e8e8f0;
+  --text-secondary: #8e8ea0;
+  --accent: #5b8def;
+  --accent-glow: rgba(91, 141, 239, 0.3);
+  --danger: #e0556a;
+  --success: #4caf93;
+  --warning: #f0a860;
+  --border: rgba(255, 255, 255, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
   margin: 0;
   padding: 0;
-}
-
-#app{
-  display:flex;
-  width: 100%;
-  height:100%;
-  background-color:#fff;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  background: var(--bg-primary);
 }
-.modules{
-  width:100%;
-  display:flex;
-  flex-direction:column;
+
+/* ============================
+   Status Bar
+   ============================ */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  min-height: 32px;
+  z-index: 10;
 }
-.row{
-  display:flex;
-  flex-direction: row;
-  justify-content:space-between;
+
+.status-bar.connected {
+  color: var(--success);
 }
-.action{
-  background:none;
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  min-height:60px;
-  border: 1px solid rgba(0,0,0,0.5);
-  color:rgb(82, 82, 82);
-  transition:all 0.1s;
-  font-size:20px;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+
+.status-bar.disconnected {
+  color: var(--danger);
 }
-.action:active{
-  opacity:0.8;
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+  transition: background var(--transition);
 }
-.action[disabled]{
+
+.connected .status-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.disconnected .status-dot {
+  animation: pulse-dot-warn 1.5s ease-in-out infinite;
+}
+
+.status-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.status-resolution {
+  font-size: 11px;
+  opacity: 0.7;
+  font-family: monospace;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes pulse-dot-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================
+   Video Container
+   ============================ */
+
+.video-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.video-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
   pointer-events: none;
-  color:rgb(150, 150, 150);
 }
 
-.action.blue{
-  background-color:rgb(11, 85, 182);
+/* ============================
+   Touch Panel (覆盖层)
+   ============================ */
+
+.touch-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  touch-action: none;
+  cursor: none;
 }
 
-.touchPanel{
-  flex:auto;
-  background-color:aliceblue;
+/* 触摸模式指示器 */
+.touch-mode-indicator {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.touch-mode-indicator.visible {
+  opacity: 1;
+}
+
+/* ============================
+   Placeholder (未连接时)
+   ============================ */
+
+.placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 2;
+}
+
+.placeholder-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.placeholder-text {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.btn-reconnect {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-weight: 500;
+}
+
+.btn-reconnect:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+/* ============================
+   Bottom Toolbar
+   ============================ */
+
+.toolbar {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 8px 10px calc(8px + var(--safe-bottom));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-btn {
+  flex: 1;
+  max-width: 56px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tool-btn:active {
+  transform: scale(0.93);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.tool-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.tool-btn-danger {
+  color: var(--danger);
+}
+
+.tool-btn-danger:active {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* 工具栏图标按钮脉冲 */
+.tool-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease-out;
+}
+
+.tool-btn:active::after {
+  width: 120px;
+  height: 120px;
+}
+
+/* ============================
+   Volume Toast
+   ============================ */
+
+.volume-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  color: var(--text-primary);
+  z-index: 100;
+  box-shadow: var(--shadow);
+  animation: toast-fade 1.5s ease-in-out forwards;
+  pointer-events: none;
+}
+
+@keyframes toast-fade {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-10px); }
+}
+
+/* ============================
+   Responsive
+   ============================ */
+
+/* 小屏幕 (iPhone SE / 320px) */
+@media (max-width: 360px) {
+  .tool-btn {
+    max-width: 44px;
+    height: 38px;
+    font-size: 14px;
+  }
+  .toolbar-row {
+    gap: 2px;
+  }
+  .toolbar {
+    padding: 6px 6px calc(6px + var(--safe-bottom));
+  }
+}
+
+/* 大屏幕 (iPad / 平板) */
+@media (min-width: 768px) {
+  .tool-btn {
+    max-width: 72px;
+    height: 52px;
+    font-size: 20px;
+  }
+  .toolbar {
+    padding: 12px 20px calc(12px + var(--safe-bottom));
+  }
+}
+
+/* 横屏适配 */
+@media (orientation: landscape) {
+  .toolbar {
+    flex-direction: row;
+    padding: 8px 14px calc(8px + var(--safe-bottom));
+  }
+  .toolbar-row {
+    flex: 1;
+  }
+}
+
+/* 暗色模式系统级优化 */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-primary: #f5f5f7;
+    --bg-secondary: #e8e8ed;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --text-primary: #1d1d1f;
+    --text-secondary: #6e6e73;
+  }
 }
