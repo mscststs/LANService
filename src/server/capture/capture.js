@@ -32,9 +32,11 @@ let reconnectAttempts = 0;
 let currentSourceId = null;
 let streamingInProgress = false;   // 防止并发 startStreaming
 let running = false;               // 当前是否有活跃的流
+let pendingSourceId = null;        // 排队等待的 sourceId
 
 const MAX_RECONNECT_ATTEMPTS = 10;
 const RECONNECT_DELAY = 3000;
+const CLEANUP_DELAY_MS = 200;     // cleanup 后等待 GPU 释放资源
 
 // ==================== 屏幕捕获 ====================
 
@@ -109,10 +111,15 @@ function createPeerConnection() {
   return pc;
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function startStreaming(sourceId) {
-  // 防止并发调用
+  // 防止并发调用：排队而不是丢弃
   if (streamingInProgress) {
-    console.warn('startStreaming already in progress, skipping');
+    console.warn('startStreaming already in progress, queueing sourceId:', sourceId);
+    pendingSourceId = sourceId;
     return;
   }
   streamingInProgress = true;
@@ -126,6 +133,11 @@ async function startStreaming(sourceId) {
     }
 
     currentSourceId = sourceId;
+
+    // Windows 上 GPU 可能还没释放旧捕获资源，延迟后重试
+    if (CLEANUP_DELAY_MS > 0) {
+      await delay(CLEANUP_DELAY_MS);
+    }
 
     console.log('Starting stream...');
     screenStream = await getScreenStream(sourceId);
@@ -162,6 +174,14 @@ async function startStreaming(sourceId) {
     scheduleReconnect();
   } finally {
     streamingInProgress = false;
+
+    // 处理排队的请求
+    if (pendingSourceId) {
+      const queued = pendingSourceId;
+      pendingSourceId = null;
+      console.log('Processing queued startStreaming for:', queued);
+      startStreaming(queued);
+    }
   }
 }
 
@@ -211,8 +231,14 @@ function scheduleReconnect() {
 // ==================== IPC 监听 ====================
 
 ipcRenderer.on('capture:start', (event, sourceInfo) => {
-  console.log('Received capture:start');
+  console.log('Received capture:start, sourceId:', sourceInfo?.sourceId, 'streamingInProgress:', streamingInProgress);
   if (sourceInfo && sourceInfo.sourceId) {
+    // 如果正在流中，先强制清理再排队（主进程发了新的 sourceId，说明旧的需要替换）
+    if (streamingInProgress) {
+      console.log('Force cleanup for new capture:start');
+      cleanup();
+      streamingInProgress = false;
+    }
     startStreaming(sourceInfo.sourceId);
   } else {
     console.error('capture:start missing sourceId');

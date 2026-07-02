@@ -81,6 +81,8 @@ function createCaptureWindow() {
  * 获取屏幕源并通知渲染进程开始捕获
  */
 let captureInProgress = false;
+const MAX_SOURCE_RETRIES = 3;
+const SOURCE_RETRY_DELAYS = [500, 1000, 2000];
 
 async function startCaptureWithSources() {
   if (captureInProgress) {
@@ -90,12 +92,29 @@ async function startCaptureWithSources() {
   captureInProgress = true;
 
   try {
-    console.log('[CaptureManager] Getting screen sources from desktopCapturer...');
-    const sources = await desktopCapturer.getSources({ types: ['screen'] });
-    console.log('[CaptureManager] Screen sources found:', sources.length);
+    let sources = [];
+
+    // 重试机制：Windows 上首次调用可能返回空数组
+    for (let attempt = 0; attempt <= MAX_SOURCE_RETRIES; attempt++) {
+      if (attempt > 0) {
+        const waitMs = SOURCE_RETRY_DELAYS[attempt - 1] || 2000;
+        console.log('[CaptureManager] Retry', attempt + '/' + MAX_SOURCE_RETRIES + ' after', waitMs + 'ms');
+        await new Promise(r => setTimeout(r, waitMs));
+      }
+
+      console.log('[CaptureManager] Getting screen sources from desktopCapturer... (attempt', attempt + 1 + ')');
+      sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        // 必须指定 thumbnailSize，否则 Windows 上可能返回空数组
+        thumbnailSize: { width: 0, height: 0 },
+      });
+      console.log('[CaptureManager] Screen sources found:', sources.length);
+
+      if (sources.length > 0) break;
+    }
 
     if (sources.length === 0) {
-      console.error('[CaptureManager] No screen sources found!');
+      console.error('[CaptureManager] No screen sources found after', MAX_SOURCE_RETRIES + 1, 'attempts!');
       return;
     }
 
