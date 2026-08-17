@@ -210,22 +210,9 @@ function scheduleReconnect() {
     return;
   }
 
-  reconnectAttempts++;
-  if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
-    console.error('Max reconnect attempts reached');
-    ipcRenderer.send('capture:request-restart');
-    reconnectAttempts = 0;
-    return;
-  }
-
-  console.log('Reconnect ' + reconnectAttempts + '/' + MAX_RECONNECT_ATTEMPTS + ' in ' + RECONNECT_DELAY + 'ms');
-  reconnectTimer = setTimeout(() => {
-    if (currentSourceId) {
-      startStreaming(currentSourceId);
-    } else {
-      ipcRenderer.send('capture:request-restart');
-    }
-  }, RECONNECT_DELAY);
+  // 懒启动模式下，不自动重连。等待下一次客户端请求时由主进程重新触发
+  console.log('WebRTC connection lost, cleaning up. Will restart on next client request.');
+  cleanup();
 }
 
 // ==================== IPC 监听 ====================

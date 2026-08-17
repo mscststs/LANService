@@ -53,8 +53,8 @@ app.whenReady().then(async () => {
       httpServer.listen(port, ip);
       tray.setConnect();
 
-      // 创建隐藏的屏幕捕获窗口
-      createCaptureWindow();
+      // 不再启动时就创建捕获窗口，改为客户端连接时按需创建
+      // createCaptureWindow();
     }catch(e){
       console.error(e);
       tray.setDisconnect();

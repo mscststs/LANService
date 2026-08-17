@@ -5,6 +5,9 @@
  * 关键架构：desktopCapturer 必须在主进程调用，
  * 获取到的 source ID 通过 IPC 传给渲染进程，
  * 渲染进程用 source ID 调用 getUserMedia 捕获屏幕。
+ *
+ * 懒启动模式：只在客户端请求连接时才创建捕获窗口和开始推流，
+ * 空闲超时后自动释放资源以降低 GPU 占用。
  */
 
 const { BrowserWindow, ipcMain, desktopCapturer } = require('electron');
@@ -15,6 +18,22 @@ let captureWindow = null;
 
 // 调试模式：设置为 true 可显示捕获窗口
 const DEBUG_SHOW_WINDOW = false;
+
+// 空闲超时：如果没有客户端连接，超时后停止捕获释放 GPU
+const IDLE_TIMEOUT_MS = 120000; // 2 分钟
+let idleTimer = null;
+
+/**
+ * 重置空闲计时器
+ * 每次有客户端活动时调用，防止提前释放
+ */
+function resetIdleTimer() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    console.log('[CaptureManager] Idle timeout reached, stopping capture to save GPU');
+    stopCapture();
+  }, IDLE_TIMEOUT_MS);
+}
 
 /**
  * 创建隐藏的捕获窗口
@@ -62,15 +81,9 @@ function createCaptureWindow() {
     captureWindow = null;
   });
 
-  // 窗口加载完成后：获取屏幕源，发送给渲染进程
+  // 窗口加载完成后不再自动开始捕获，等待显式调用 startCaptureWithSources
   captureWindow.webContents.on('did-finish-load', () => {
-    console.log('[CaptureManager] Capture window loaded, starting capture...');
-    // 延迟确保脚本完全初始化
-    setTimeout(() => {
-      if (captureWindow && !captureWindow.isDestroyed()) {
-        startCaptureWithSources();
-      }
-    }, 500);
+    console.log('[CaptureManager] Capture window loaded, waiting for startCaptureWithSources...');
   });
 
   console.log('[CaptureManager] Capture window created, DEBUG_SHOW_WINDOW:', DEBUG_SHOW_WINDOW);
@@ -78,7 +91,32 @@ function createCaptureWindow() {
 }
 
 /**
+ * 确保捕获窗口已加载完毕
+ */
+function ensureCaptureWindowReady() {
+  return new Promise((resolve, reject) => {
+    if (!captureWindow || captureWindow.isDestroyed()) {
+      createCaptureWindow();
+    }
+
+    // 等待 did-finish-load
+    if (captureWindow.webContents.isLoading()) {
+      captureWindow.webContents.once('did-finish-load', () => {
+        // 额外延迟确保脚本初始化
+        setTimeout(resolve, 300);
+      });
+      captureWindow.webContents.once('did-fail-load', (e, code, desc) => {
+        reject(new Error('Capture window load failed: ' + desc));
+      });
+    } else {
+      resolve();
+    }
+  });
+}
+
+/**
  * 获取屏幕源并通知渲染进程开始捕获
+ * 每次客户端请求时都应重新调用，确保推流是新鲜的
  */
 let captureInProgress = false;
 const MAX_SOURCE_RETRIES = 3;
@@ -92,6 +130,9 @@ async function startCaptureWithSources() {
   captureInProgress = true;
 
   try {
+    // 确保窗口存在并加载完毕
+    await ensureCaptureWindowReady();
+
     let sources = [];
 
     // 重试机制：Windows 上首次调用可能返回空数组
@@ -125,10 +166,19 @@ async function startCaptureWithSources() {
     // 发送第一个（主）屏幕源给渲染进程
     const source = sources[0];
     console.log('[CaptureManager] Sending screen source to capture window...');
+
+    if (!captureWindow || captureWindow.isDestroyed()) {
+      console.error('[CaptureManager] Capture window lost before sending source');
+      return;
+    }
+
     captureWindow.webContents.send('capture:start', {
       sourceId: source.id,
       sourceName: source.name,
     });
+
+    // 启动空闲计时器
+    resetIdleTimer();
   } catch (err) {
     console.error('[CaptureManager] Failed to get screen sources:', err);
   } finally {
@@ -137,9 +187,12 @@ async function startCaptureWithSources() {
 }
 
 /**
- * 停止捕获并关闭窗口
+ * 停止捕获并关闭窗口，释放 GPU 资源
  */
 function stopCapture() {
+  clearTimeout(idleTimer);
+  idleTimer = null;
+
   if (captureWindow && !captureWindow.isDestroyed()) {
     captureWindow.webContents.send('capture:stop');
     captureWindow.close();
@@ -147,6 +200,13 @@ function stopCapture() {
     global._captureWindow = null;
   }
   session.reset();
+}
+
+/**
+ * 客户端活动时调用，延长空闲超时
+ */
+function notifyClientActivity() {
+  resetIdleTimer();
 }
 
 // ==================== 注册 IPC Handlers ====================
@@ -187,9 +247,13 @@ function registerIpcHandlers() {
   ipcMain.on('capture:connection-state', (event, state) => {
     console.log('[CaptureManager] Connection state changed:', state);
     session.connected = (state === 'connected');
+    if (state === 'connected') {
+      // 连接成功，重置空闲计时器
+      resetIdleTimer();
+    }
   });
 
-  // 处理渲染进程请求重新获取屏幕源（当 /webrtc/start 被调用时触发）
+  // 处理渲染进程请求重新获取屏幕源（当重连时触发）
   ipcMain.on('capture:request-restart', () => {
     console.log('[CaptureManager] Renderer requested restart, re-fetching sources...');
     startCaptureWithSources();
@@ -201,4 +265,5 @@ module.exports = {
   stopCapture,
   registerIpcHandlers,
   startCaptureWithSources,
+  notifyClientActivity,
 };
