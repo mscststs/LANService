@@ -31,10 +31,13 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Get version
+        id: version
+        run: echo "value=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
+
       # Runs a set of commands using the runners shell
       - name: Npm install
         run: npm install
-
 
       - name: Build Dist
         run: npm run build:mac
@@ -44,10 +47,9 @@ jobs:
       - name: Upload Artifact[osx]
         uses: actions/upload-artifact@v4
         with:
-          name: LANService-macos
-          path: dist/*.dmg   
+          name: LANService-macos-v${{ steps.version.outputs.value }}
+          path: dist/*.dmg
 
-  # This workflow contains a single job called "build"
   windows-release:
     # The type of runner that the job will run on
     runs-on: windows-latest
@@ -63,10 +65,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Get version
+        id: version
+        shell: bash
+        run: echo "value=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
+
       # Runs a set of commands using the runners shell
       - name: Npm install
         run: npm install
-
 
       - name: Build Dist
         run: npm run build:win
@@ -76,5 +82,5 @@ jobs:
       - name: Upload Artifact[win]
         uses: actions/upload-artifact@v4
         with:
-          name: LANService-win
+          name: LANService-win-v${{ steps.version.outputs.value }}
           path: dist/*.exe
